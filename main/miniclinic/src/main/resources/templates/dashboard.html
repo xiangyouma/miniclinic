@@ -54,12 +54,18 @@
                     <span th:text="${appt.status}"
                           th:class="${'status-' + appt.status}">BOOKED</span>
                 </td>
-                <td>
-                    <!-- 僅顯示 BOOKED 狀態才有的取消按鈕 -->
-                    <button th:if="${appt.status == 'BOOKED'}"
-                            th:data-id="${appt.apptId}"
-                            onclick="cancelAppointment(this)">取消</button>
-                </td>
+                 <td>
+            <button th:if="${appt.status == 'BOOKED'}" 
+                    th:onclick="updateStatus([[${appt.apptId}]], 'COMPLETED')"
+                    style="background-color: #10B981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; margin-right: 4px;">
+                看診完成
+            </button>
+            <button th:if="${appt.status == 'BOOKED'}" 
+                    th:onclick="updateStatus([[${appt.apptId}]], 'CANCELLED')"
+                    style="background-color: #EF4444; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer;">
+                取消
+            </button>
+        </td>
             </tr>
         </tbody>
     </table>
@@ -67,32 +73,29 @@
         <a th:href="@{/}">← 回首頁</a>
     </p>
 
-    <script>
-    function cancelAppointment(btn) {
-        if (!confirm("確定要取消此掛號嗎？")) return;
-        
-        const apptId = btn.getAttribute("data-id");
-        
-        fetch(`/api/appointments/${apptId}/status`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ "status": "CANCELLED" })
-        })
-        .then(response => {
-            if (response.ok) {
-                alert("掛號已取消！");
-                location.reload(); // 重新整理頁面
-            } else {
-                alert("取消失敗，請稍後再試。");
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            alert("系統連線發生錯誤。");
-        });
-    }
-    </script>
+<script>
+function updateStatus(apptId, newStatus) {
+    if (!confirm('確定要變更掛號狀態嗎？')) return;
+    
+    fetch(`/api/appointments/${apptId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload(); // 成功後重新整理畫面
+        } else {
+            alert('更新狀態失敗，請確認權限或登入狀態');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('發生系統錯誤');
+    });
+}
+</script>
 </body>
 </html>
